@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard - BioskopKu</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style> body { background-color: #0a0a0a; color: #e0e0e0; font-family: 'Segoe UI', sans-serif; min-height: 100vh; } .navbar { background: #141414; border-bottom: 1px solid #333; padding: 15px 0; } </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+<body>
+
+    <nav class="navbar navbar-dark mb-4">
+        <div class="container">
+            <span class="navbar-brand fw-bold text-danger"><i class="fas fa-user-shield me-2"></i> PANEL ADMIN</span>
+            <a href="/" class="btn btn-outline-secondary btn-sm rounded-pill px-3">&larr; Kembali ke Website</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                {{ message }} <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <div class="row mb-4">
+            <div class="col-md-4 mb-3">
+                <div class="stat-box">
+                    <div><div class="text-muted small text-uppercase">Total Film</div><div class="stat-number">{{ movies|length }}</div></div>
+                    <i class="fas fa-film fa-3x text-secondary opacity-25"></i>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="stat-box" style="border-left-color: #00d2d3;">
+                    <div><div class="text-muted small text-uppercase">Total Tiket</div>
+                    {% set total_tickets = namespace(value=0) %}
+                    {% for val in chart_values %}{% set total_tickets.value = total_tickets.value + val %}{% endfor %}
+                    <div class="stat-number">{{ total_tickets.value }}</div></div>
+                    <i class="fas fa-ticket-alt fa-3x text-secondary opacity-25"></i>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="stat-box" style="border-left-color: #2ecc71;">
+                    <div><div class="text-muted small text-uppercase">Pendapatan Hari Ini</div>
+                    <div class="stat-number" style="font-size: 1.8rem;">Rp {{ "{:,}".format(daily_revenue) }}</div>
+                    </div>
+                    <i class="fas fa-wallet fa-3x text-secondary opacity-25"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="admin-card">
+                    <div class="card-header-title"><span class="text-danger">Tambah Film Baru</span> <i class="fas fa-plus-circle"></i></div>
+                    <form action="/admin/add_movie" method="POST" enctype="multipart/form-data">
+                        <div class="mb-3"><label>Judul Film</label><input type="text" name="title" class="form-control" required></div>
+                        <div class="mb-3"><label>Harga Tiket (Rp)</label><input type="number" name="price" class="form-control" required></div>
+                        <div class="mb-3"><label>Status Tayang</label><select name="status" class="form-select"><option value="now">Sedang Tayang</option><option value="soon">Akan Datang</option></select></div>
+                        <div class="mb-3"><label>Sinopsis</label><textarea name="description" class="form-control" rows="2"></textarea></div>
+                        <div class="mb-3"><label>Jam Tayang</label><input type="text" name="showtime" class="form-control" placeholder="12:00, 14:00"></div>
+                        <div class="mb-4"><label>Poster</label><input type="file" name="image" class="form-control" accept="image/*"></div>
+                        <button type="submit" class="btn btn-danger w-100 fw-bold py-2 rounded-3">SIMPAN FILM</button>
+                    </form>
+                </div>
+
+                <div class="admin-card">
+                    <div class="card-header-title">Grafik Popularitas</div>
+                    <div style="height: 200px;">
+                        <canvas id="salesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-8">
+                <div class="admin-card border-success" style="border-width: 1px;">
+                    <div class="card-header-title text-success">
+                        <span><i class="fas fa-calendar-alt me-2"></i> Laporan Transaksi Harian</span>
+                        <form action="/admin" method="GET" class="d-flex gap-2">
+                            <input type="date" name="date" class="form-control form-control-sm bg-dark text-white border-secondary" value="{{ selected_date }}" style="width: 150px;">
+                            <button type="submit" class="btn btn-sm btn-light"><i class="fas fa-eye"></i></button>
+                            <a href="/admin/download_report?date={{ selected_date }}" class="btn btn-sm btn-success fw-bold"><i class="fas fa-file-csv me-1"></i> CSV</a>
+                        </form>
+                    </div>
+                    <table class="table-custom">
+                        <thead><tr><th>Jam</th><th>User</th><th>Film</th><th>Kursi</th><th>Harga</th></tr></thead>
+                        <tbody>
+                            {% for booking, user, movie in daily_sales %}
+                            <tr>
+                                <td class="text-white-50">{{ booking.booking_date.strftime('%H:%M') }}</td>
+                                <td class="fw-bold">{{ user.username }}</td>
+                                <td>{{ movie.title }}</td>
+                                <td><span class="badge bg-secondary">{{ booking.seat_number }}</span></td>
+                                <td class="text-end text-success fw-bold">Rp {{ "{:,}".format(movie.price) }}</td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="5" class="text-center py-5"><span class="text-white-50">Belum ada transaksi pada tanggal ini.</span></td></tr>
+                            {% endfor %}
+                        </tbody>
+                        {% if daily_sales %}
+                        <tfoot style="border-top: 2px solid #444;"><tr><td colspan="4" class="text-end text-white text-uppercase small pt-3">Total Pendapatan Harian</td><td class="text-end pt-3"><h4 class="fw-bold text-success">Rp {{ "{:,}".format(daily_revenue) }}</h4></td></tr></tfoot>
+                        {% endif %}
+                    </table>
+                </div>
+
+                <div class="admin-card">
+                    <div class="card-header-title">Manajemen Film</div>
+                    <table class="table-custom">
+                        <thead><tr><th>Film Info</th><th class="text-end">Aksi</th></tr></thead>
+                        <tbody>
+                            {% for movie in movies %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        {% if movie.image %} <img src="{{ url_for('static', filename='uploads/' + movie.image) }}" style="width: 40px; height: 60px; object-fit: cover; border-radius: 4px; margin-right: 15px;"> {% else %} <div style="width: 40px; height: 60px; background: #333; border-radius: 4px; margin-right: 15px;"></div> {% endif %}
+                                        <div><div class="fw-bold text-white">{{ movie.title }}</div><div class="small text-muted">Rp {{ "{:,}".format(movie.price) }}</div></div>
+                                    </div>
+                                </td>
+                                <td class="text-end">
+                                    <a href="/admin/reset_seats/{{ movie.id }}" class="btn btn-sm btn-outline-warning me-1" onclick="return confirm('Reset kursi film ini?')" title="Reset Kursi">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </a>
+                                    
+                                    <a href="/admin/edit_movie/{{ movie.id }}" class="btn btn-sm btn-outline-info me-1" title="Edit Film">
+                                        <i class="fas fa-pencil-alt"></i>
+                                    </a>
+
+                                    <a href="/admin/delete_movie/{{ movie.id }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Yakin hapus film ini?')" title="Hapus Film">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% else %} <tr><td colspan="2" class="text-center text-muted py-3">Belum ada film.</td></tr> {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script>
+        const adminData = {
+            chartLabels: {{ chart_labels | tojson }},
+            chartValues: {{ chart_values | tojson }}
+        };
+    </script>
+    <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+</body>
+</html>

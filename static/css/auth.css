@@ -1,0 +1,91 @@
+/* auth.css - Style untuk login & register */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
+body {
+    font-family: 'Poppins', sans-serif !important;
+}
+
+body {
+    margin: 0; 
+    padding: 0; 
+    height: 100vh;
+    font-family: 'Segoe UI', sans-serif;
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    color: white;
+    background: linear-gradient(-45deg, #0f0c29, #302b63, #24243e, #1a0b0b);
+    background-size: 400% 400%; 
+    animation: gradientBG 15s ease infinite;
+}
+
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.auth-card {
+    background: rgba(255, 255, 255, 0.05); 
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2); 
+    border-radius: 20px;
+    padding: 40px; 
+    width: 90%; 
+    max-width: 400px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5); 
+    text-align: center;
+}
+
+.brand-title {
+    font-weight: 900; 
+    letter-spacing: 3px; 
+    margin-bottom: 10px; 
+    font-size: 2rem;
+    background: -webkit-linear-gradient(#e50914, #ff6b6b);
+    -webkit-background-clip: text; 
+    -webkit-text-fill-color: transparent;
+}
+
+.form-control {
+    background: rgba(0, 0, 0, 0.3); 
+    border: 1px solid #555; 
+    color: #fff;
+    padding: 12px; 
+    border-radius: 10px;
+}
+
+.form-control:focus {
+    background: rgba(0, 0, 0, 0.5); 
+    color: #fff; 
+    border-color: #e50914;
+    box-shadow: 0 0 10px rgba(229, 9, 20, 0.5);
+}
+
+.btn-auth {
+    background: linear-gradient(90deg, #e50914, #b20710); 
+    border: none;
+    padding: 12px; 
+    font-weight: bold; 
+    border-radius: 50px; 
+    width: 100%;
+    margin-top: 20px; 
+    box-shadow: 0 5px 15px rgba(229, 9, 20, 0.4); 
+    transition: 0.3s;
+}
+
+.btn-auth:hover { 
+    transform: scale(1.05); 
+    box-shadow: 0 8px 20px rgba(229, 9, 20, 0.6); 
+}
+
+.auth-footer { 
+    margin-top: 20px; 
+    font-size: 0.9rem; 
+    color: #aaa; 
+}
+
+.auth-footer a { 
+    color: #fff; 
+    text-decoration: underline; 
+}

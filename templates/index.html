@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BioskopKu ID</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-danger" href="/"><i class="fas fa-film me-2"></i>CINEMA X1X</a>
+            <form class="d-flex mx-auto" action="/" method="GET" style="width: 40%; min-width: 300px;">
+                <input class="form-control search-input" type="search" name="q" placeholder="Cari film" value="{{ request.args.get('q', '') }}">
+                <button class="btn btn-outline-secondary btn-search" type="submit"><i class="fas fa-search"></i></button>
+            </form>
+            <div class="d-flex align-items-center gap-2">
+                {% if username == 'admin' %}
+                    <a href="/admin" class="btn btn-warning btn-sm fw-bold px-3 rounded-pill"><i class="fas fa-cog me-1"></i> Admin</a>
+                {% endif %}
+                <a href="/history" class="btn btn-dark btn-sm border-secondary text-light px-3 rounded-pill" style="background: rgba(0,0,0,0.5);">Tiket Saya</a>
+                <a href="/logout" class="btn btn-danger btn-sm rounded-circle" style="width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center;"><i class="fas fa-power-off"></i></a>
+            </div>
+        </div>
+    </nav>
+
+    <div style="height: 100px;"></div>
+
+    <div class="container pb-5">
+        
+        {% if movies_now %}
+        <h4 class="mb-4 text-white d-flex align-items-center" style="text-shadow: 0 0 10px rgba(229, 9, 20, 0.5);">
+            <span class="bg-danger rounded-pill me-3 shadow" style="width: 5px; height: 25px;"></span>
+            {% if request.args.get('q') %} Hasil Pencarian: "{{ request.args.get('q') }}" {% else %} Sedang Tayang {% endif %}
+        </h4>
+        
+        <div class="row g-4 mb-5">
+            {% for movie in movies_now %}
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="movie-card">
+                    <a href="/movie/details/{{ movie.id }}" class="poster-link position-relative d-block">
+                        {% if movie.image %} 
+                            <img src="{{ url_for('static', filename='uploads/' + movie.image) }}" class="movie-poster" alt="{{ movie.title }}"> 
+                        {% else %} 
+                            <img src="https://ui-avatars.com/api/?name={{ movie.title }}&background=222&color=fff&size=512&font-size=0.33&bold=true" class="movie-poster"> 
+                        {% endif %}
+                    </a>
+                    <div class="card-body">
+                        <a href="/movie/details/{{ movie.id }}" class="text-decoration-none"><div class="movie-title">{{ movie.title }}</div></a>
+                        <div class="movie-price">Rp {{ "{:,}".format(movie.price) }}</div>
+                        <a href="/movie/{{ movie.id }}" class="btn btn-ticket shadow-sm">Beli Tiket</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %} </div>
+        {% endif %}
+
+        {% if movies_soon and not request.args.get('q') %}
+        <h4 class="mb-4 text-white d-flex align-items-center" style="text-shadow: 0 0 10px rgba(255, 193, 7, 0.5);">
+            <span class="bg-warning rounded-pill me-3 shadow" style="width: 5px; height: 25px;"></span>
+            Akan Datang (Coming Soon)
+        </h4>
+        <div class="row g-4">
+            {% for movie in movies_soon %}
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="movie-card"> 
+                    <a href="/movie/details/{{ movie.id }}" class="poster-link position-relative d-block">
+                        {% if movie.image %} <img src="{{ url_for('static', filename='uploads/' + movie.image) }}" class="movie-poster"> {% else %} <img src="https://ui-avatars.com/api/?name={{ movie.title }}&background=222&color=fff" class="movie-poster"> {% endif %}
+                    </a>
+                    <div class="card-body">
+                        <div class="movie-title">{{ movie.title }}</div>
+                        <div class="movie-price small mb-3">Segera Tayang</div>
+                        <button class="btn btn-soon" disabled>COMING SOON</button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if not movies_now and not movies_soon and request.args.get('q') %}
+        <div class="col-12 text-center py-5">
+            <div style="opacity: 0.3;">
+                <i class="fas fa-video-slash fa-5x mb-3 text-danger"></i>
+            </div>
+            <h3 class="fw-bold mt-3">Yah, filmnya tidak ketemu!</h3>
+            <p class="text-white-50">Cari judul lain.</p>
+            <a href="/" class="btn btn-outline-danger rounded-pill px-4 mt-2">
+                <i class="fas fa-undo me-2"></i> Reset Pencarian
+            </a>
+        </div>
+        {% endif %}
+
+    </div>
+
+    <footer class="text-center py-4 mt-5" style="background: rgba(0,0,0,0.3); border-top: 1px solid rgba(255,255,255,0.05);">
+        <div class="container">
+            <h5 class="fw-bold text-danger mb-2">CINEMA X1X</h5>
+            <p class="small text-white-50 mb-3">Nikmati pengalaman menonton film terbaik dengan kualitas layar lebar.</p>
+            <div class="mb-3">
+                <a href="#" class="text-white-50 mx-2"><i class="fab fa-instagram fa-lg"></i></a>
+                <a href="#" class="text-white-50 mx-2"><i class="fab fa-twitter fa-lg"></i></a>
+                <a href="#" class="text-white-50 mx-2"><i class="fab fa-facebook fa-lg"></i></a>
+            </div>
+            <small class="text-muted">&copy; 2024 BioskopKu ID. All Rights Reserved.</small>
+        </div>
+    </footer>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
